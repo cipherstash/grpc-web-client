@@ -359,10 +359,15 @@ where
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
     ) -> Poll<Result<Option<HeaderMap<HeaderValue>>, Self::Error>> {
-        if !self.decode_trailers {
+        Poll::Ready(Ok(None))
+
+        // FIXME: This code results in an infinite loop and needs to be fixed
+        /*if !self.decode_trailers {
             return Poll::Ready(Ok(None));
         }
         loop {
+            
+
             if self.state == State::Done {
                 return Poll::Ready(Ok(Some(mem::replace(&mut self.trailers, HeaderMap::new()))));
             }
@@ -370,7 +375,7 @@ where
                 Some(Err(e)) => return Poll::Ready(Err(e)),
                 _ => {}
             };
-        }
+        }*/
     }
 
     fn is_end_stream(&self) -> bool {
