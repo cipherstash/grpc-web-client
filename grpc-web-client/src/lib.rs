@@ -1,4 +1,15 @@
 mod call;
+use cfg_if::cfg_if;
+
+cfg_if! {
+    if #[cfg(feature = "web-worker")] {
+        mod worker;
+        use crate::worker as request;
+    } else {
+        mod browser;
+        use crate::browser as request;
+    }
+}
 
 use bytes::Bytes;
 use call::{Encoding, GrpcWebCall};
@@ -12,10 +23,10 @@ use http_body::Body;
 use js_sys::{Array, Uint8Array};
 use std::{error::Error, pin::Pin};
 use tonic::{body::BoxBody, client::GrpcService, Status};
-use wasm_bindgen::{JsCast, JsValue};
-use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen::{JsValue, JsCast};
 use wasm_streams::ReadableStream;
-use web_sys::{Headers, RequestInit};
+use web_sys::Headers;
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ClientError {
@@ -33,6 +44,10 @@ impl fmt::Display for ClientError {
 pub type CredentialsMode = web_sys::RequestCredentials;
 
 pub type RequestMode = web_sys::RequestMode;
+
+
+
+
 
 #[derive(Clone)]
 pub struct Client {
@@ -70,20 +85,13 @@ impl Client {
         let body_array: Uint8Array = body_bytes.as_ref().into();
         let body_js: &JsValue = body_array.as_ref();
 
-        let mut init = RequestInit::new();
-        init.method("POST")
-            .mode(self.mode)
-            .credentials(self.credentials)
+        let mut init = request::post_init(self);
+        init
             .body(Some(body_js))
             .headers(headers.as_ref());
 
         let request = web_sys::Request::new_with_str_and_init(&uri, &init).unwrap();
-
-        let window = web_sys::window().unwrap();
-        let fetch = JsFuture::from(window.fetch_with_request(&request))
-            .await
-            .map_err(ClientError::FetchFailed)?;
-        let fetch_res: web_sys::Response = fetch.dyn_into().unwrap();
+        let fetch_res = request::fetch_with_request(request).await?;
 
         let mut res = Response::builder().status(fetch_res.status());
         let headers = res.headers_mut().unwrap();
