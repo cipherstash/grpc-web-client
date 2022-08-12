@@ -4,7 +4,7 @@ use web_sys::RequestInit;
 use crate::{ClientError, Client};
 
 pub(crate) async fn fetch_with_request(request: web_sys::Request) -> Result<web_sys::Response, ClientError> {
-    let window = web_sys::window().unwrap();
+    let window = web_sys::window().expect("Could not access JavaScript Window");
     let fetch = JsFuture::from(window.fetch_with_request(&request))
         .await
         .map_err(ClientError::FetchFailed)?;
