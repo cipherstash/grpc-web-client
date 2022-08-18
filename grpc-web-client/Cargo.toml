@@ -1,11 +1,11 @@
 [package]
-name = "grpc-web-client"
+name = "cipherstash-grpc-web-client"
 version = "0.1.2"
 authors = ["Jonathan Rudenberg <jonathan@titanous.com>"]
 license = "MIT OR Apache-2.0"
 edition = "2018"
-repository = "https://github.com/titanous/grpc-web-client"
-homepage = "https://github.com/titanous/grpc-web-client"
+repository = "https://github.com/cipherstash/grpc-web-client"
+homepage = "https://github.com/cipherstash/grpc-web-client"
 description = """
 An implementation of the gRPC-Web protocol that allows using tonic in browsers via wasm.
 """
